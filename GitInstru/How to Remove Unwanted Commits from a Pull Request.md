@@ -4,7 +4,7 @@
 2. This commit was pushed to your search_function branch and is now visible in your PR.
 
 # Step-by-Step Solution
-1. Identify the Commit History
+## 1. Identify the Commit History
 First, check your current commit history to locate the unwanted commit:
 
 `git log`
@@ -19,12 +19,12 @@ f6cbe89 init join and create room  # ❌ Unwanted commit
 
 733680a Merge: 42b20bb f302277
 
-2. Reset the Branch to Before the Unwanted Commit
+## 2. Reset the Branch to Before the Unwanted Commit
 Use git reset --hard to "rewind" your branch to the last valid commit (before the unwanted one). This removes the unwanted commit and all commits after it from the branch history. USE THIS CAREFULLY
 ```
 # Replace <last-valid-commit-hash> with the commit BEFORE the unwanted one
 git reset --hard 6512cc7
-``
+```
 
 `git log` now shows:
 
@@ -34,7 +34,7 @@ git reset --hard 6512cc7
 
 The unwanted commit f6cbe89 is now removed.
 
-3. Reapply Relevant Commits
+## 3. Reapply Relevant Commits
 If you had valid commits after the unwanted one (e.g., 8eff407 and 64e57a1), reapply them using git cherry-pick:
 ```
 git cherry-pick 8eff407
@@ -44,10 +44,10 @@ git cherry-pick 64e57a1
 
 If conflicts appear, resolve them in your code editor, then run git add . and git cherry-pick --continue.
 
-4. Force-Push to Update the PR
+## 4. Force-Push to Update the PR
 Since you’ve rewritten the branch history, you must force-push to overwrite the remote branch:
 
 `git push -f origin search_function`
 
-5. Verify the PR
+## 5. Verify the PR
 Check your PR on GitHub. The unwanted commit f6cbe89 should no longer appear, and only your relevant commits will be visible.
