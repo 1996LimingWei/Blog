@@ -1,0 +1,10 @@
+# When we run the project, following error occurred:
+```
+Python error: WARNING: ffmpeg not found. The downloaded format may not be the best available. Installing ffmpeg is strongly recommended: https://github.com/yt-dlp/yt-dlp#dependencies
+
+Python error: Traceback (most recent call last):
+  File "/Users/leo/Desktop/Project/FunTrip/server/scripts/yt_downloader.py", line 13, in <module>
+
+Python error:     audioUrl = info['entries'][0]['requested_formats'][1]['url']
+KeyError: 'requested_formats'
+```
