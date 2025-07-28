@@ -1,4 +1,4 @@
-## What is client/trip-frontend/src/types/index.ts
+# What is client/trip-frontend/src/types/index.ts
 <img width="571" height="399" alt="截屏2025-07-28 13 15 59" src="https://github.com/user-attachments/assets/f1be228c-8697-4428-bd54-fa67dfbe7eed" />
 
 `index.ts` is a **TypeScript type definitions file**. It's like a "dictionary" or "contract" that defines the shape and structure of data that your application uses.
