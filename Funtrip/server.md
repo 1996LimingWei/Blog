@@ -109,17 +109,50 @@ app.use('/api/spotify', spotifyRoutes);
 - If you have a route `/login` in `spotifyRoutes`, it becomes accessible at `/api/spotify/login`.
 - If you have `/refresh`, it becomes `/api/spotify/refresh`.
 
-**Why do this?**
-- **Organization:** Keeps your code clean by grouping related routes together.
-- **Scalability:** Makes it easy to add more features without cluttering your main server file.
+---
+
+# What is `axios`?
+
+- **`axios`** is a **client-side** library (used in frontend React code).
+- It is used to **send HTTP requests** (like GET, POST, etc.) from your browser (frontend) to a server (backend).
+- Example:
+  ```js
+  axios.post('/download-song', { song: 'song name' });
+  ```
+  This sends a POST request to the backend.
 
 ---
 
-## Visual Example
+## What is `app` (in Express)?
 
-| Route in `spotifyRoutes` | Full URL after mounting         |
-|--------------------------|---------------------------------|
-| `/login`                 | `/api/spotify/login`            |
-| `/refresh`               | `/api/spotify/refresh`          |
+- **`app`** is our **server-side** Express application (used in our backend Node.js code).
+- **`app.post`** defines a **route handler**: it tells the server what to do when it receives a POST request at a certain URL.
+- Example:
+  ```js
+  app.post('/download-song', (req, res) => {
+    // handle the request here
+  });
+  ```
+  This listens for POST requests at `/download-song`.
 
 ---
+
+- **`axios.post`** (frontend) **sends** a POST request to the server.
+- **`app.post`** (backend) **receives** that POST request and handles it.
+
+**They are two sides of the same conversation:**
+- `axios.post` = "Hey server, here’s some data, please do something!"
+- `app.post` = "Okay, I got your request, here’s my response!"
+
+---
+
+| Action                        | HTTP Method | Why?                                 |
+|-------------------------------|-------------|--------------------------------------|
+| Get info (host, hostId, etc.) | GET         | Just reading data                    |
+| Download/search song          | POST        | Sending data, triggering an action   |
+| Send auth code to Spotify     | POST        | Sending data, triggering an action   |
+
+---
+
+
+
