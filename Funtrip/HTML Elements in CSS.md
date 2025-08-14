@@ -24,7 +24,7 @@ In web development, HTML elements (like `<div>`, `<h2>`, `<span>`) provide the s
 ### **1. Block vs. Inline Display**
 - **Block elements** (`<div>`, `<h2>`, `<p>`, `<ul>`):  
   - Take full available width by default.  
-  - Stack vertically (new line after each).  
+  - Stack vertically (new line after each).  Use flex-col for flexible column spacing
   - Can have width/height, margin/padding on all sides.  
 
 - **Inline elements** (`<span>`, `<a>`):  
