@@ -4,151 +4,50 @@ Start with a a short todo list and start with the backend events, then the front
 
 Before we begin: Understand what component we need to modify/add. Is it purely frontend/backend update or both? Streamline the workflow for this new feature.
 
-Step 1 — Define queue types and socket events (backend)
+A sample feature update: "Highlight the current song playing in the list" feature. Let's first examine the current code structure to understand how the queue and playback are managed.
 
-- File: `server/src/types/index.ts` (or `server/src/types/room.ts`, wherever room state lives)
-  - Add minimal queue contracts:
-```ts
-export type TrackSummary = {
-  id: string;
-  name: string;
-  artists: string;
-  durationMs: number;
-  requestedBy: string;
-};
+Read client/trip-frontend/src/components/CurrentSongQueue.tsx, we know that the song queue is rendered in this component. 
 
-export type RoomQueueState = {
-  queue: TrackSummary[];
-  currentTrackId?: string;
-};
-```
+Next, a component must be used in the frontend UI. By searching CurrentSongQueue in search bar, we can find: client/trip-frontend/src/pages/Room.tsx is using this to render the party room.
 
-- File: `server/src/sockets.ts`
-  - Ensure the room state includes a queue (if you already have room state, extend it):
-```ts
-// room.queue: TrackSummary[]
-// room.currentTrackId?: string
-```
-  - Add handlers with host checks:
-```ts
-// queue:clear
-socket.on('queue:clear', ({ roomId }) => {
-  const room = rooms.get(roomId);
-  if (!room || !socketIsHost(socket, room)) return;
-  room.queue = [];
-  io.to(roomId).emit('queue:update', { roomId, queue: [], currentTrackId: room.currentTrackId });
-});
+Now we know how songs queue is rendered in room. But to highlight the current song, shouldn't we know how current song is playing/handling in the project? Yes, by examining the project, we can find that client/trip-frontend/src/components/Audio/MainAudioPlayer.tsx is used to call server and download song, and tracks current song playing.
 
-// queue:delete
-socket.on('queue:delete', ({ roomId, trackId }) => {
-  const room = rooms.get(roomId);
-  if (!room || !socketIsHost(socket, room)) return;
-  room.queue = room.queue.filter(t => t.id !== trackId);
-  if (room.currentTrackId === trackId) room.currentTrackId = undefined;
-  io.to(roomId).emit('queue:update', { roomId, queue: room.queue, currentTrackId: room.currentTrackId });
-});
+From above audioplayer, we can also see it imports a "AudioPlayerProps" which defines the prop of the player at client/trip-frontend/src/types/index.ts, let's also take a look at that(maybe we need to add a new type to track when the current song change, which helps us change the highlight position, but)
 
-// queue:reorder
-socket.on('queue:reorder', ({ roomId, newOrderIds }) => {
-  const room = rooms.get(roomId);
-  if (!room || !socketIsHost(socket, room)) return;
-  const idToTrack = new Map(room.queue.map(t => [t.id, t]));
-  room.queue = newOrderIds.map(id => idToTrack.get(id)).filter(Boolean) as TrackSummary[];
-  io.to(roomId).emit('queue:update', { roomId, queue: room.queue, currentTrackId: room.currentTrackId });
-});
+Now we have the big picture, let's draw the logical flow:
 
-// nowPlaying:update (if not present)
-socket.on('nowPlaying:update', ({ roomId, currentTrackId }) => {
-  const room = rooms.get(roomId);
-  if (!room || !socketIsHost(socket, room)) return;
-  room.currentTrackId = currentTrackId;
-  io.to(roomId).emit('nowPlaying:update', { roomId, currentTrackId });
-});
-```
-  - Note: Replace `rooms` and `socketIsHost` with your actual room store and host check.
+1. **Track Current Song Index**: The `MainAudioPlayer` already tracks `currentIndex` - this is our source of truth
+2. **Pass Current Index Down**: Pass `currentIndex` from `MainAudioPlayer` to `Room` component, then to `CurrentSongQueue`
+3. **Highlight Logic**: In `CurrentSongQueue`, compare each song's index with `currentIndex` and apply highlighting styles
+4. **Real-time Updates**: When songs change (next/previous), the highlight updates automatically
 
-Step 2 — Subscribe and hold queue state (frontend)
 
-- File: `client/trip-frontend/src/hooks/useSocket.ts` (or wherever you centralize socket)
-  - Subscribe to updates and expose `queue` and `currentTrackId`:
-```ts
-// inside effect after connecting
-socket.on('queue:update', ({ queue, currentTrackId }) => {
-  setQueue(queue);
-  setCurrentTrackId(currentTrackId);
-});
+Next we should Implementate the code change following the logical flow
 
-socket.on('nowPlaying:update', ({ currentTrackId }) => {
-  setCurrentTrackId(currentTrackId);
-});
-```
-  - Expose methods to emit:
-```ts
-const clearQueue = (roomId: string) => socket.emit('queue:clear', { roomId });
-const deleteFromQueue = (roomId: string, trackId: string) => socket.emit('queue:delete', { roomId, trackId });
-const reorderQueue = (roomId: string, newOrderIds: string[]) => socket.emit('queue:reorder', { roomId, newOrderIds });
-```
+### **Step-by-Step Implementation:**
 
-Step 3 — UI: host-only controls, delete/clear, highlight current
+1. **Added Callback in MainAudioPlayer** (`MainAudioPlayer.tsx`):
+   - Added `onCurrentSongChange` prop to notify parent when current song index changes
+   - Added `useEffect` to call the callback whenever `currentIndex` changes
 
-- File: `client/trip-frontend/src/components/CurrentSongQueue.tsx`
-  - Render the list based on `queue` prop.
-  - Highlight current:
-```tsx
-<li className={track.id === currentTrackId ? "bg-blue-50" : ""}>
-```
-  - Host-only controls:
-```tsx
-{isHost && (
-  <>
-    <button onClick={() => onDelete(track.id)}>Delete</button>
-    {/* drag handle UI will be added next step */}
-  </>
-)}
-```
-  - Clear button (host-only) at header:
-```tsx
-{isHost && <button onClick={onClear}>Clear</button>}
-```
-  - Component props you’ll need:
-```ts
-type Props = {
-  queue: TrackSummary[];
-  currentTrackId?: string;
-  isHost: boolean;
-  roomId: string;
-  onClear: () => void;
-  onDelete: (trackId: string) => void;
-  onReorder: (newOrderIds: string[]) => void;
-};
-```
+2. **Added State Management in Room** (`Room.tsx`):
+   - Added `currentSongIndex` state to track which song is currently playing
+   - Passed `onCurrentSongChange={setCurrentSongIndex}` to `MainAudioPlayer`
+   - Passed `currentSongIndex={currentSongIndex}` to `CurrentSongQueue`
 
-Step 4 — Wire Room to queue UI
+3. **Enhanced CurrentSongQueue Component** (`CurrentSongQueue.tsx`):
+   - Added `currentSongIndex` prop to the component interface
+   - Implemented highlighting logic: current song gets blue background with white text
+   - Added "Now Playing" indicator with play icon for the current song
+   - Applied smooth transitions for visual feedback
 
-- File: `client/trip-frontend/src/pages/Room.tsx`
-  - Read `queue`, `currentTrackId` from your socket hook/state.
-  - Pass host-only handlers:
-```tsx
-<CurrentSongQueue
-  queue={queue}
-  currentTrackId={currentTrackId}
-  isHost={isHost}
-  roomId={roomId}
-  onClear={() => clearQueue(roomId)}
-  onDelete={(trackId) => deleteFromQueue(roomId, trackId)}
-  onReorder={(ids) => reorderQueue(roomId, ids)}
-/>
-```
+### **How It Works:**
 
-Step 5 — Drag-and-drop reorder
-
-- Still in `CurrentSongQueue.tsx`:
-  - Use any library (dnd-kit recommended) or the simplest possible approach:
-    - Maintain a local ordered list, apply reordering on drag end, call `onReorder(newOrderIds)`.
-    - Optionally do optimistic update (apply local reorder immediately), and reconcile on the next `queue:update`.
-
-That’s the logical flow. If you paste your `server/src/sockets.ts` room state/host check, I’ll tailor the exact snippets to your code.
-
-- Summary of what we did:
-  - Backend: added queue contracts and host-gated socket events for clear, delete, reorder, nowPlaying.
-  - Frontend: subscribed to updates; added host-only actions, highlight current, and stubs for drag-and-drop reorder.
+- **Real-time Updates**: When a song changes (next/previous), `MainAudioPlayer` calls `onCurrentSongChange`
+- **State Propagation**: The new index flows down from `Room` → `CurrentSongQueue`
+- **Visual Highlighting**: The current song gets:
+  - Blue background (`bg-blue-500`)
+  - White text (`text-white`)
+  - Bold font (`font-semibold`)
+  - Shadow effect (`shadow-md`)
+  - "Now Playing" indicator with play icon
