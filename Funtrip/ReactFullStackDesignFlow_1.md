@@ -1,10 +1,10 @@
-## Work Flow to add a new feature
+## Work Flow to add a new feature： Highlight the current song playing in the list
 
 Start with a a short todo list and start with the backend events, then the frontend UI.
 
 Before we begin: Understand what component we need to modify/add. Is it purely frontend/backend update or both? Streamline the workflow for this new feature.
 
-A sample feature update: "Highlight the current song playing in the list" feature. Let's first examine the current code structure to understand how the queue and playback are managed.
+A sample feature update "Highlight the current song playing in the list" feature. Let's first examine the current code structure to understand how the queue and playback are managed.
 
 Read client/trip-frontend/src/components/CurrentSongQueue.tsx, we know that the song queue is rendered in this component. 
 
