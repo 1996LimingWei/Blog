@@ -15,21 +15,27 @@ React.FC<PasswordModalProps>
 ## 1. **What does this function declaration do?**
 
 ```typescript
-const PasswordModal: React.FC<PasswordModalProps> = ({
-    isOpen,
-    onClose,
-    onPasswordChoice,
-    showPasswordInput,
-    password,
-    setPassword,
-    onSubmitPassword
+const SortableSongItem: React.FC<SortableSongItemProps> = ({ 
+    song, 
+    index, 
+    currentSongIndex, 
+    isHost, 
+    onDeleteSong, 
+    isDeletingSong
 }) => {
+    // ... component logic ...
+    
+    return (
+        // ... JSX rendering ...
+    );
+};
 ```
 
 This is a **function component declaration** that:
-- Creates a React component called `PasswordModal`
-- Accepts props (parameters) defined in `PasswordModalProps`
+- Creates a React component called `SortableSongItem`
+- Accepts props (parameters) defined in `SortableSongItem`
 - Uses **destructuring** to extract specific props from the props object
+- return (... JSX rendering ...) defines what the component looks like in the UI
 
 ---
 
