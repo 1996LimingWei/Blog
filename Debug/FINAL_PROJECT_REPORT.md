@@ -1,9 +1,4 @@
 # HKBU AI Assistant: A Cloud-Native Intelligent Campus Chatbot
-
-**Course**: COMP 7940 - Cloud Computing  
-**Institution**: Hong Kong Baptist University  
-**Submission Date**: [Insert Date]
-
 ---
 
 ## Team Information
